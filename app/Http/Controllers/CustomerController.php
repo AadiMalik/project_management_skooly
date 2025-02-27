@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Plan;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -56,45 +59,87 @@ class CustomerController extends Controller
             ],
             'plan_id'          => 'required'
         ]);
-        if ($request->id != '' && $request->id != null) {
-            $obj = [
-                "name" => $request->name ?? '',
-                "email" => $request->email ?? '',
-                "phone_no" => $request->phone_no ?? '',
-                "subdomain" => $request->subdomain ?? '',
-                "plan_id" => $request->plan_id ?? null,
-                "updatedby_id" => Auth::user()->id,
-            ];
-            $plan = Plan::find($request->plan_id);
-            $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-            $obj['expiry_date'] = $expiry_date;
-            // Find the record first
-            $customer = Customer::find($request->id);
+        try {
+            DB::beginTransaction();
+            if ($request->id != '' && $request->id != null) {
+                $obj = [
+                    "name" => $request->name ?? '',
+                    "email" => $request->email ?? '',
+                    "phone_no" => $request->phone_no ?? '',
+                    "subdomain" => $request->subdomain ?? '',
+                    "plan_id" => $request->plan_id ?? null,
+                    "updatedby_id" => Auth::user()->id,
+                ];
+                $plan = Plan::find($request->plan_id);
+                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['expiry_date'] = $expiry_date;
+                // Find the record first
+                $customer = Customer::find($request->id);
 
-            if ($customer) {
-                $customer->update($obj);
-                return redirect('customer')->with('success', 'customer updated successfully!');
+                if ($customer) {
+                    $customer->update($obj);
+                    return redirect('customer')->with('success', 'customer updated successfully!');
+                }
+
+                return redirect()->back()->with('error', 'Something went wrong!');
+            } else {
+                $obj = [
+                    "name" => $request->name ?? '',
+                    "email" => $request->email ?? '',
+                    "phone_no" => $request->phone_no ?? '',
+                    "subdomain" => $request->subdomain ?? '',
+                    "plan_id" => $request->plan_id ?? null,
+                    "createdby_id" => Auth::user()->id,
+                ];
+                $plan = Plan::find($request->plan_id);
+                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['expiry_date'] = $expiry_date;
+                $customer = Customer::create($obj);
+
+                //Sub Domain
+                $subdomain = $request->subdomain;
+                $domain = "alldigi.biz"; // Your main domain
+                $cpanelUser = "alldxyrq";
+                $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
+                $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}";
+
+                // **1. Create the Subdomain using cPanel API**
+                $createSubdomain = $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
+                if (!$createSubdomain) {
+                    return response()->json(['message' => 'Subdomain creation failed!'], 500);
+                }
+
+                // **2. Copy and Extract Project Files**
+                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                $this->copyProjectFiles($sourcePath, $newSubdomainPath);
+
+                // **3. Create Database and User**
+                $dbName = "alldxyrq_{$subdomain}";
+                $dbUser = "alldxyrq_{$subdomain}";
+                $dbPass = "alldxyrq_{$subdomain}";
+                $this->createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass);
+
+                // **4. Update .env file for the new project**
+                $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
+
+                // if ($customer)
+                // return response()->json([
+                //     'message' => 'Subdomain and database created successfully!',
+                //     'subdomain_url' => "https://{$subdomain}.{$domain}",
+                //     'database' => $dbName,
+                //     'database_user' => $dbUser,
+                //     'database_password' => $dbPass
+                // ]);
+
             }
-
-            return redirect()->back()->with('error', 'Something went wrong!');
-        } else {
-            $obj = [
-                "name" => $request->name ?? '',
-                "email" => $request->email ?? '',
-                "phone_no" => $request->phone_no ?? '',
-                "subdomain" => $request->subdomain ?? '',
-                "plan_id" => $request->plan_id ?? null,
-                "createdby_id" => Auth::user()->id,
-            ];
-            $plan = Plan::find($request->plan_id);
-            $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-            $obj['expiry_date'] = $expiry_date;
-            $customer = Customer::create($obj);
-            if ($customer)
-                return redirect('customer')->with('success', 'Customer created successfully!');
-
-            return redirect()->back()->with('error', 'Something went wrong!');
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', $e);
         }
+        return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}.{$domain}');
+
+        // return redirect()->back()->with('error', 'Something went wrong!');
     }
 
     /**
@@ -142,5 +187,76 @@ class CustomerController extends Controller
             'success' => true,
             'message' => 'Customer deleted successfully!'
         ]);
+    }
+
+    //Helping function
+
+    // Create a new domain via cPanel API
+    private function createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $path)
+    {
+        $query = "https://{$domain}:2083/execute/DomainInfo/domain?domain={$subdomain}.{$domain}&documentroot={$path}/public";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $query);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        return json_decode($response, true)['status'] ?? false;
+    }
+
+    // Copy and extract project files
+    private function copyProjectFiles($sourcePath, $destinationPath)
+    {
+        if (!File::exists($destinationPath)) {
+            File::makeDirectory($destinationPath, 0777, true, true);
+        }
+
+        exec("cp -r {$sourcePath}/* {$destinationPath}");
+        exec("unzip {$destinationPath}/project.zip -d {$destinationPath}");
+        exec("mv {$destinationPath}/project/* {$destinationPath}/");
+        exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
+    }
+
+    // Create a database, user, and grant privileges
+    private function createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass)
+    {
+        // Create database
+        $dbQuery = "https://alldigi.biz:2083/execute/Mysql/add_database?name={$dbName}";
+        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $dbQuery);
+
+        // Create database user
+        $userQuery = "https://alldigi.biz:2083/execute/Mysql/add_user?name={$dbUser}&password={$dbPass}";
+        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $userQuery);
+
+        // Grant privileges
+        $grantQuery = "https://alldigi.biz:2083/execute/Mysql/set_privileges_on_database?user={$dbUser}&database={$dbName}&privileges=ALL%20PRIVILEGES";
+        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $grantQuery);
+    }
+
+    // Execute cPanel API requests
+    private function executeCpanelRequest($cpanelUser, $cpanelToken, $query)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $query);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($response, true)['status'] ?? false;
+    }
+
+    // Update .env file with new database credentials
+    private function updateEnvFile($path, $dbName, $dbUser, $dbPass)
+    {
+        $envPath = "{$path}/.env";
+        if (File::exists($envPath)) {
+            $envContent = File::get($envPath);
+            $envContent = preg_replace("/DB_DATABASE=.*/", "DB_DATABASE={$dbName}", $envContent);
+            $envContent = preg_replace("/DB_USERNAME=.*/", "DB_USERNAME={$dbUser}", $envContent);
+            $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
+            File::put($envPath, $envContent);
+        }
     }
 }
