@@ -163,6 +163,8 @@ class CustomerController extends Controller
                 if ($db_attach->failed()) {
                     dd($db_attach->body()); // Show error response
                 }
+
+                dd('all good');
                 // // **4. Update .env file for the new project**
                 // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
