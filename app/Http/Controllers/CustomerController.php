@@ -127,8 +127,8 @@ class CustomerController extends Controller
 
                 // // **3. Create Database and User**
                 $dbName = "alldxyrq_".$request->subdomain;
-                $dbUser = "alldxyrq_".$request->subdomain;
-                $dbPass = "alldxyrq_".$request->subdomain;
+                $dbUser = "alldxyrq_lms";
+                // $dbPass = "alldxyrq_lms";
 
                 $db_create = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
@@ -141,16 +141,16 @@ class CustomerController extends Controller
                 }
 
 
-                $db_user_create = Http::withHeaders([
-                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                ])->get("https://$cpanelHost:2083/execute/Mysql/create_user", [
-                    'name' => $dbUser, // Database username (must include cPanel user prefix)
-                    'password' => $dbPass, // Change this to a strong password
-                ]);
+                // $db_user_create = Http::withHeaders([
+                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                // ])->get("https://$cpanelHost:2083/execute/Mysql/create_user", [
+                //     'name' => $dbUser, // Database username (must include cPanel user prefix)
+                //     'password' => $dbPass, // Change this to a strong password
+                // ]);
                 
-                if ($db_user_create->failed()) {
-                    dd($db_user_create->body()); // Show error response
-                }
+                // if ($db_user_create->failed()) {
+                //     dd($db_user_create->body()); // Show error response
+                // }
 
                 $db_attach = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
@@ -164,7 +164,7 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
-                dd('all good');
+                dd($db_attach->body());
                 // // **4. Update .env file for the new project**
                 // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
