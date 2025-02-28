@@ -83,18 +83,18 @@ class CustomerController extends Controller
 
                 return redirect()->back()->with('error', 'Something went wrong!');
             } else {
-                $obj = [
-                    "name" => $request->name ?? '',
-                    "email" => $request->email ?? '',
-                    "phone_no" => $request->phone_no ?? '',
-                    "subdomain" => $request->subdomain ?? '',
-                    "plan_id" => $request->plan_id ?? null,
-                    "createdby_id" => Auth::user()->id,
-                ];
-                $plan = Plan::find($request->plan_id);
-                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-                $obj['expiry_date'] = $expiry_date;
-                $customer = Customer::create($obj);
+                // $obj = [
+                //     "name" => $request->name ?? '',
+                //     "email" => $request->email ?? '',
+                //     "phone_no" => $request->phone_no ?? '',
+                //     "subdomain" => $request->subdomain ?? '',
+                //     "plan_id" => $request->plan_id ?? null,
+                //     "createdby_id" => Auth::user()->id,
+                // ];
+                // $plan = Plan::find($request->plan_id);
+                // $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                // $obj['expiry_date'] = $expiry_date;
+                // $customer = Customer::create($obj);
 
                 //Sub Domain
                 $subdomain = $request->subdomain;
@@ -104,11 +104,8 @@ class CustomerController extends Controller
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}";
 
                 // **1. Create the Subdomain using cPanel API**
-                $createSubdomain = $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
-                // if (!$createSubdomain) {
-                //     return response()->json(['message' => 'Subdomain creation failed!'], 500);
-                // }
-
+                $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
+                
                 // **2. Copy and Extract Project Files**
                 $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
                 $this->copyProjectFiles($sourcePath, $newSubdomainPath);
@@ -121,15 +118,6 @@ class CustomerController extends Controller
 
                 // **4. Update .env file for the new project**
                 $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
-
-                // if ($customer)
-                // return response()->json([
-                //     'message' => 'Subdomain and database created successfully!',
-                //     'subdomain_url' => "https://{$subdomain}.{$domain}",
-                //     'database' => $dbName,
-                //     'database_user' => $dbUser,
-                //     'database_password' => $dbPass
-                // ]);
 
             }
             DB::commit();
@@ -194,16 +182,23 @@ class CustomerController extends Controller
     // Create a new domain via cPanel API
     private function createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $path)
     {
-        $query = "https://{$domain}:2083/execute/DomainInfo/domain?domain={$subdomain}.{$domain}&documentroot={$path}/public";
+        // API URL to create a subdomain
+        $apiUrl = "https://{$domain}:2083/execute/SubDomain/add_subdomain?domain={$subdomain}&rootdomain={$cpanelUser}&dir={$path}";
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $query);
+        curl_setopt($ch, CURLOPT_URL, $apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
         $response = curl_exec($ch);
         curl_close($ch);
 
-        return json_decode($response, true)['status'] ?? false;
+        // Check API Response
+        $data = json_decode($response, true);
+        if ($data['status'] === 1) {
+            echo "✅ Subdomain created successfully!";
+        } else {
+            echo "❌ Failed to create subdomain: " . $data['errors'][0];
+        }
     }
 
     // Copy and extract project files
