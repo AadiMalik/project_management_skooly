@@ -151,6 +151,15 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
+                $db_import = Http::withHeaders([
+                    'Authorization' => "cpanel cpaneluser:cpaneltoken"
+                ])->get("https://yourcpanel.com:2083/execute/Mysql/import_database", [
+                    'database' => $dbName,
+                    'file' => '/home/'.$cpanelUser.'/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
+                ]);
+                if ($db_import->failed()) {
+                    dd($db_import->body()); // Show error response
+                }
                 // // **4. Update .env file for the new project**
                 $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
