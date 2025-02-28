@@ -106,41 +106,19 @@ class CustomerController extends Controller
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
-                // $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
-
-                // $apiUrl = "https://{$cpanelHost}:2087/cpsess1314132468/json-api/cpanel?cpanel_jsonapi_user={$cpanelUser}&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=addaddondomain&dir={$cpanelHost}%2Fhome%2Fdir&newdomain={$cpanelHost}&subdomain={$subdomain}";
-
-                // $postData = [
-                //     'domain' => $subdomain,
-                //     'documentroot' => $newSubdomainPath,
-                //     'subdomain' => $subdomain,
-                // ];
-
-                // $ch = curl_init();
-                // curl_setopt($ch, CURLOPT_URL, $apiUrl);
-                // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                // curl_setopt($ch, CURLOPT_POST, true);
-                // curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-                // curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel $cpanelUser:$cpanelToken"]);
-
-                // $response = curl_exec($ch);
-                // curl_close($ch);
-
-                // $data = json_decode($response, true);
-                $response = Http::withHeaders([
-                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
-                    'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
-                    'rootdomain' => 'alldigi.biz', // Your main domain
-                    'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
-                ]);
+                // $response = Http::withHeaders([
+                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                // ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
+                //     'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
+                //     'rootdomain' => 'alldigi.biz', // Your main domain
+                //     'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
+                // ]);
                 
-                if ($response->failed()) {
-                    dd($response->body()); // Show error response
-                }
+                // if ($response->failed()) {
+                //     dd($response->body()); // Show error response
+                // }
                 
-                dd($response->body());
+                // dd($response->body());
 
                 // **2. Copy and Extract Project Files**
                 // $path = "/home/{$cpanelUser}/{$subdomain}";
@@ -148,11 +126,43 @@ class CustomerController extends Controller
                 // $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
-                // $dbName = "alldxyrq_{$subdomain}";
-                // $dbUser = "alldxyrq_{$subdomain}";
-                // $dbPass = "alldxyrq_{$subdomain}";
-                // $this->createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass);
+                $dbName = "alldxyrq_{$subdomain}";
+                $dbUser = "alldxyrq_{$subdomain}";
+                $dbPass = "alldxyrq_{$subdomain}";
 
+                $db_create = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/create_database", [
+                    'name' => $dbName, // Database name (must include cPanel user prefix)
+                ]);
+                
+                if ($db_create->failed()) {
+                    dd($db_create->body()); // Show error response
+                }
+
+
+                $db_user_create = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/create_user", [
+                    'name' => $dbUser, // Database username (must include cPanel user prefix)
+                    'password' => $dbPass, // Change this to a strong password
+                ]);
+                
+                if ($db_user_create->failed()) {
+                    dd($db_user_create->body()); // Show error response
+                }
+
+                $db_attach = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/set_privileges_on_database", [
+                    'user' => $dbUser, // Database user
+                    'database' => $dbName, // Database name
+                    'privileges' => 'ALL PRIVILEGES', // Full access
+                ]);
+                
+                if ($db_attach->failed()) {
+                    dd($db_attach->body()); // Show error response
+                }
                 // // **4. Update .env file for the new project**
                 // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
