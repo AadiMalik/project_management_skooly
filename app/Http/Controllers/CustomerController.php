@@ -84,51 +84,50 @@ class CustomerController extends Controller
 
                 return redirect()->back()->with('error', 'Something went wrong!');
             } else {
-                // $obj = [
-                //     "name" => $request->name ?? '',
-                //     "email" => $request->email ?? '',
-                //     "phone_no" => $request->phone_no ?? '',
-                //     "subdomain" => $request->subdomain ?? '',
-                //     "plan_id" => $request->plan_id ?? null,
-                //     "createdby_id" => Auth::user()->id,
-                // ];
-                // $plan = Plan::find($request->plan_id);
-                // $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-                // $obj['expiry_date'] = $expiry_date;
-                // $customer = Customer::create($obj);
+                $obj = [
+                    "name" => $request->name ?? '',
+                    "email" => $request->email ?? '',
+                    "phone_no" => $request->phone_no ?? '',
+                    "subdomain" => $request->subdomain ?? '',
+                    "plan_id" => $request->plan_id ?? null,
+                    "createdby_id" => Auth::user()->id,
+                ];
+                $plan = Plan::find($request->plan_id);
+                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['expiry_date'] = $expiry_date;
+                $customer = Customer::create($obj);
 
                 //Sub Domain
                 $subdomain = $request->subdomain . '.alldigi.biz';
                 $cpanelHost = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
-                $cpanelPassword = "zLVRZ3tq9GSF";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
-                // $response = Http::withHeaders([
-                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                // ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
-                //     'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
-                //     'rootdomain' => 'alldigi.biz', // Your main domain
-                //     'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
-                // ]);
+                $response = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
+                    'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
+                    'rootdomain' => 'alldigi.biz', // Your main domain
+                    'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
+                ]);
                 
-                // if ($response->failed()) {
-                //     dd($response->body()); // Show error response
-                // }
+                if ($response->failed()) {
+                    dd($response->body()); // Show error response
+                }
                 
                 // dd($response->body());
 
                 // **2. Copy and Extract Project Files**
-                // $path = "/home/{$cpanelUser}/{$subdomain}";
-                // $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
-                // $this->copyProjectFiles($sourcePath, $path);
+                $path = "/home/{$cpanelUser}/{$subdomain}";
+                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
                 $dbName = "alldxyrq_".$request->subdomain;
                 $dbUser = "alldxyrq_lms";
-                // $dbPass = "alldxyrq_lms";
+                $dbPass = "alldxyrq_lms";
 
                 $db_create = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
@@ -139,18 +138,6 @@ class CustomerController extends Controller
                 if ($db_create->failed()) {
                     dd($db_create->body()); // Show error response
                 }
-
-
-                // $db_user_create = Http::withHeaders([
-                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                // ])->get("https://$cpanelHost:2083/execute/Mysql/create_user", [
-                //     'name' => $dbUser, // Database username (must include cPanel user prefix)
-                //     'password' => $dbPass, // Change this to a strong password
-                // ]);
-                
-                // if ($db_user_create->failed()) {
-                //     dd($db_user_create->body()); // Show error response
-                // }
 
                 $db_attach = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
@@ -164,9 +151,8 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
-                dd($db_attach->body());
                 // // **4. Update .env file for the new project**
-                // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
+                $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
             }
             DB::commit();
@@ -174,7 +160,7 @@ class CustomerController extends Controller
             DB::rollback();
             return redirect()->back()->with('error', $e);
         }
-        return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}.{$domain}');
+        return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}');
 
         // return redirect()->back()->with('error', 'Something went wrong!');
     }
