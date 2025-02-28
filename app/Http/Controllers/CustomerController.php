@@ -97,7 +97,7 @@ class CustomerController extends Controller
                 // $customer = Customer::create($obj);
 
                 //Sub Domain
-                $subdomain = $request->subdomain;
+                $subdomain = $request->subdomain.'alldigi.biz';
                 $domain = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
@@ -195,9 +195,9 @@ class CustomerController extends Controller
         // Check API Response
         $data = json_decode($response, true);
         if ($data['status'] === 1) {
-            echo "✅ Subdomain created successfully!";
+            return true;
         } else {
-            echo "❌ Failed to create subdomain: " . $data['errors'][0];
+            return false;
         }
     }
 
