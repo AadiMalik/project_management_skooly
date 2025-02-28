@@ -126,9 +126,9 @@ class CustomerController extends Controller
                 // $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
-                $dbName = "alldxyrq_{$subdomain}";
-                $dbUser = "alldxyrq_{$subdomain}";
-                $dbPass = "alldxyrq_{$subdomain}";
+                $dbName = "alldxyrq_".$request->subdomain;
+                $dbUser = "alldxyrq_".$request->subdomain;
+                $dbPass = "alldxyrq_".$request->subdomain;
 
                 $db_create = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
