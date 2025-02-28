@@ -130,9 +130,10 @@ class CustomerController extends Controller
                 // $data = json_decode($response, true);
                 $response = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                ])->get("https://$cpanelHost:2083/execute/DomainInfo/create_domain", [
-                    'domain' => 'testing.alldigi.biz',
-                    'documentroot' => '/home/alldxyrq/testing.alldigi.biz/public',
+                ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
+                    'domain' => 'testing.alldigi.biz', // Only the subdomain part (e.g., "blog")
+                    'rootdomain' => 'alldigi.biz', // Your main domain
+                    'dir' => '/home/alldxyrq/testing.alldigi.biz', // Document root
                 ]);
                 
                 if ($response->failed()) {
