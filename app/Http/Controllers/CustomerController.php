@@ -128,11 +128,18 @@ class CustomerController extends Controller
                 // curl_close($ch);
 
                 // $data = json_decode($response, true);
-                $data = Http::withBasicAuth($cpanelUser, $cpanelPassword)->get("https://$cpanelHost/create_domain.php", [
-                    'domain' => $subdomain,
-                    'documentroot' => $newSubdomainPath
+                $response = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/DomainInfo/create_domain", [
+                    'domain' => 'testing.alldigi.biz',
+                    'documentroot' => '/home/alldxyrq/testing.alldigi.biz/public',
                 ]);
-                dd($data);
+                
+                if ($response->failed()) {
+                    dd($response->body()); // Show error response
+                }
+                
+                dd($response);
 
                 // **2. Copy and Extract Project Files**
                 // $path = "/home/{$cpanelUser}/{$subdomain}";
