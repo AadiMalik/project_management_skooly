@@ -131,9 +131,9 @@ class CustomerController extends Controller
                 $response = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
                 ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
-                    'domain' => 'testing.alldigi.biz', // Only the subdomain part (e.g., "blog")
+                    'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
                     'rootdomain' => 'alldigi.biz', // Your main domain
-                    'dir' => '/home/alldxyrq/testing.alldigi.biz', // Document root
+                    'dir' => '/home/alldxyrq/{$subdomain}/public', // Document root
                 ]);
                 
                 if ($response->failed()) {
