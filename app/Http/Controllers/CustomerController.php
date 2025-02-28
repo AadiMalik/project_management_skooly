@@ -98,7 +98,7 @@ class CustomerController extends Controller
 
                 //Sub Domain
                 $subdomain = $request->subdomain . 'alldigi.biz';
-                $domain = "alldigi.biz"; // Your main domain
+                $cpanelHost = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
@@ -106,7 +106,7 @@ class CustomerController extends Controller
                 // **1. Create the Subdomain using cPanel API**
                 // $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
 
-                $apiUrl = "https://{$domain}:2083/execute/DomainInfo/add_domain?domain={$subdomain}&dir={$newSubdomainPath}";
+                $apiUrl = "https://$cpanelHost:2083/execute/AddonDomain/addaddondomain?dir={$newSubdomainPath}&newdomain={$subdomain}&subdomain={$subdomain}";
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $apiUrl);
