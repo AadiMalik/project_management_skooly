@@ -139,7 +139,7 @@ class CustomerController extends Controller
                     dd($response->body()); // Show error response
                 }
                 
-                dd($response);
+                dd($response->body());
 
                 // **2. Copy and Extract Project Files**
                 // $path = "/home/{$cpanelUser}/{$subdomain}";
