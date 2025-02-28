@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class CustomerController extends Controller
 {
@@ -100,32 +101,37 @@ class CustomerController extends Controller
                 $subdomain = $request->subdomain . 'alldigi.biz';
                 $cpanelHost = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
+                $cpanelPassword = "zLVRZ3tq9GSF";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
                 // $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
 
-                $apiUrl = "https://$cpanelHost:2083/execute/Domain/add_domain";
+                // $apiUrl = "https://{$cpanelHost}:2087/cpsess1314132468/json-api/cpanel?cpanel_jsonapi_user={$cpanelUser}&cpanel_jsonapi_apiversion=2&cpanel_jsonapi_module=AddonDomain&cpanel_jsonapi_func=addaddondomain&dir={$cpanelHost}%2Fhome%2Fdir&newdomain={$cpanelHost}&subdomain={$subdomain}";
 
-                $postData = [
+                // $postData = [
+                //     'domain' => $subdomain,
+                //     'documentroot' => $newSubdomainPath,
+                //     'subdomain' => $subdomain,
+                // ];
+
+                // $ch = curl_init();
+                // curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                // curl_setopt($ch, CURLOPT_POST, true);
+                // curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+                // curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel $cpanelUser:$cpanelToken"]);
+
+                // $response = curl_exec($ch);
+                // curl_close($ch);
+
+                // $data = json_decode($response, true);
+                $data = Http::withBasicAuth($cpanelUser, $cpanelPassword)->get("https://$cpanelHost/create_domain.php", [
                     'domain' => $subdomain,
-                    'documentroot' => $newSubdomainPath,
-                    'subdomain' => $subdomain,
-                ];
-
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $apiUrl);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel $cpanelUser:$cpanelToken"]);
-
-                $response = curl_exec($ch);
-                curl_close($ch);
-
-                $data = json_decode($response, true);
+                    'documentroot' => $newSubdomainPath
+                ]);
                 dd($data);
 
                 // **2. Copy and Extract Project Files**
