@@ -97,27 +97,28 @@ class CustomerController extends Controller
                 // $customer = Customer::create($obj);
 
                 //Sub Domain
-                $subdomain = $request->subdomain.'alldigi.biz';
+                $subdomain = $request->subdomain . 'alldigi.biz';
                 $domain = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
-                $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}";
+                $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
                 $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
-                
+
                 // **2. Copy and Extract Project Files**
-                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
-                $this->copyProjectFiles($sourcePath, $newSubdomainPath);
+                // $path = "/home/{$cpanelUser}/{$subdomain}";
+                // $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                // $this->copyProjectFiles($sourcePath, $path);
 
-                // **3. Create Database and User**
-                $dbName = "alldxyrq_{$subdomain}";
-                $dbUser = "alldxyrq_{$subdomain}";
-                $dbPass = "alldxyrq_{$subdomain}";
-                $this->createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass);
+                // // **3. Create Database and User**
+                // $dbName = "alldxyrq_{$subdomain}";
+                // $dbUser = "alldxyrq_{$subdomain}";
+                // $dbPass = "alldxyrq_{$subdomain}";
+                // $this->createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass);
 
-                // **4. Update .env file for the new project**
-                $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
+                // // **4. Update .env file for the new project**
+                // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
 
             }
             DB::commit();
@@ -183,7 +184,7 @@ class CustomerController extends Controller
     private function createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $path)
     {
         // API URL to create a subdomain
-        $apiUrl = "https://{$domain}:2083/execute/SubDomain/add_subdomain?domain={$subdomain}&rootdomain={$cpanelUser}&dir={$path}";
+        $apiUrl = "https://{$domain}:2083/execute/DomainInfo/add_domain?domain={$subdomain}&dir={$path}";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $apiUrl);
@@ -192,7 +193,6 @@ class CustomerController extends Controller
         $response = curl_exec($ch);
         curl_close($ch);
 
-        // Check API Response
         $data = json_decode($response, true);
         if ($data['status'] === 1) {
             return true;
