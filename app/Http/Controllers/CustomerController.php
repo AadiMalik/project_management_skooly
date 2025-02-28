@@ -104,7 +104,19 @@ class CustomerController extends Controller
                 $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
-                $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
+                // $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
+
+                $apiUrl = "https://{$domain}:2083/execute/DomainInfo/add_domain?domain={$subdomain}&dir={$newSubdomainPath}";
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $apiUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                $data = json_decode($response, true);
+                dd($data);
 
                 // **2. Copy and Extract Project Files**
                 // $path = "/home/{$cpanelUser}/{$subdomain}";
