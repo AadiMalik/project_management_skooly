@@ -106,12 +106,24 @@ class CustomerController extends Controller
                 // **1. Create the Subdomain using cPanel API**
                 // $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
 
-                $apiUrl = "https://$cpanelHost:2083/execute/AddonDomain/addaddondomain?dir={$newSubdomainPath}&newdomain={$subdomain}&subdomain={$subdomain}";
+                $apiUrl = "https://$cpanelHost:2083/execute/Domain/create_domain";
+
+                $postData = [
+                    'domain' => $cpanelHost,
+                    'documentroot' => $newSubdomainPath,
+                    'subdomain' => $subdomain,
+                    'isdedicated' => 0, // 0 = Shared IP, 1 = Dedicated IP
+                    'php_version' => 'inherit', // Use default PHP version
+                ];
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $apiUrl);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel $cpanelUser:$cpanelToken"]);
+
                 $response = curl_exec($ch);
                 curl_close($ch);
 
