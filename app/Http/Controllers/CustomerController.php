@@ -152,7 +152,7 @@ class CustomerController extends Controller
                 }
 
                 $db_import = Http::withHeaders([
-                    'Authorization' => "cpanel cpaneluser:cpaneltoken"
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
                 ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
                     'database' => $dbName,
                     'file' => '/home/'.$cpanelUser.'/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
