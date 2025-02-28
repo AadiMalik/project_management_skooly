@@ -110,22 +110,22 @@ class CustomerController extends Controller
                 ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
                     'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
                     'rootdomain' => 'alldigi.biz', // Your main domain
-                    'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
+                    'dir' => '/home/alldxyrq/' . $subdomain . '/public', // Document root
                 ]);
-                
+
                 if ($response->failed()) {
                     dd($response->body()); // Show error response
                 }
-                
+
                 // dd($response->body());
 
                 // **2. Copy and Extract Project Files**
                 $path = "/home/{$cpanelUser}/{$subdomain}";
-                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                $sourcePath = "/home/{$cpanelUser}/test.alldigi.biz";
                 $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
-                $dbName = "alldxyrq_".$request->subdomain;
+                $dbName = "alldxyrq_" . $request->subdomain;
                 $dbUser = "alldxyrq_lms";
                 $dbPass = "alldxyrq_lms";
 
@@ -134,7 +134,7 @@ class CustomerController extends Controller
                 ])->get("https://$cpanelHost:2083/execute/Mysql/create_database", [
                     'name' => $dbName, // Database name (must include cPanel user prefix)
                 ]);
-                
+
                 if ($db_create->failed()) {
                     dd($db_create->body()); // Show error response
                 }
@@ -146,23 +146,22 @@ class CustomerController extends Controller
                     'database' => $dbName, // Database name
                     'privileges' => 'ALL PRIVILEGES', // Full access
                 ]);
-                
+
                 if ($db_attach->failed()) {
                     dd($db_attach->body()); // Show error response
                 }
 
-                $db_import = Http::withHeaders([
-                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
-                    'database' => $dbName,
-                    'file' => '/home/'.$cpanelUser.'/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
-                ]);
-                if ($db_import->failed()) {
-                    dd($db_import->body()); // Show error response
-                }
+                // $db_import = Http::withHeaders([
+                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                // ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
+                //     'database' => $dbName,
+                //     'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
+                // ]);
+                // if ($db_import->failed()) {
+                //     dd($db_import->body()); // Show error response
+                // }
                 // // **4. Update .env file for the new project**
                 $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
-
             }
             DB::commit();
         } catch (Exception $e) {
@@ -247,14 +246,16 @@ class CustomerController extends Controller
     // Copy and extract project files
     private function copyProjectFiles($sourcePath, $destinationPath)
     {
+        // $sourcePath = "/home/cpaneluser/source_directory";  // Source directory
+        // $destinationPath = "/home/cpaneluser/destination_directory"; // Destination directory
+
+        // Ensure destination directory exists
         if (!File::exists($destinationPath)) {
             File::makeDirectory($destinationPath, 0777, true, true);
         }
 
-        exec("cp -r {$sourcePath}/* {$destinationPath}");
-        exec("unzip {$destinationPath}/project.zip -d {$destinationPath}");
-        exec("mv {$destinationPath}/project/* {$destinationPath}/");
-        exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
+        // Copy all files and subdirectories recursively
+        exec("cp -r {$sourcePath}/* {$destinationPath}/");
     }
 
     // Create a database, user, and grant privileges
