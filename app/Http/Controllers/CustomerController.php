@@ -105,9 +105,9 @@ class CustomerController extends Controller
 
                 // **1. Create the Subdomain using cPanel API**
                 $createSubdomain = $this->createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $newSubdomainPath);
-                if (!$createSubdomain) {
-                    return response()->json(['message' => 'Subdomain creation failed!'], 500);
-                }
+                // if (!$createSubdomain) {
+                //     return response()->json(['message' => 'Subdomain creation failed!'], 500);
+                // }
 
                 // **2. Copy and Extract Project Files**
                 $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
