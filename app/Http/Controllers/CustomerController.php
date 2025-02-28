@@ -98,7 +98,7 @@ class CustomerController extends Controller
                 // $customer = Customer::create($obj);
 
                 //Sub Domain
-                $subdomain = $request->subdomain . 'alldigi.biz';
+                $subdomain = $request->subdomain . '.alldigi.biz';
                 $cpanelHost = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
                 $cpanelPassword = "zLVRZ3tq9GSF";
@@ -133,7 +133,7 @@ class CustomerController extends Controller
                 ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
                     'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
                     'rootdomain' => 'alldigi.biz', // Your main domain
-                    'dir' => '/home/alldxyrq/{$subdomain}/public', // Document root
+                    'dir' => '/home/alldxyrq/'.$subdomain.'/public', // Document root
                 ]);
                 
                 if ($response->failed()) {
