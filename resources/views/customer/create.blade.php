@@ -49,7 +49,7 @@
                               <div class="col-md-6">
                                     <div class="form-group">
                                           <label class="form-label">Domain Name:<span class="text-danger">**</span></label>
-                                          <input type="text" id="subdomain" name="subdomain" placeholder="Enter domain name" value="{{ isset($customer)?$customer->subdomain:old('subdomain') }}" class="form-control" required />
+                                          <input type="text" id="subdomain" name="subdomain" placeholder="Enter domain name" value="{{ isset($customer)?$customer->subdomain:old('subdomain') }}" {{ isset($customer)?'disabled':'' }} class="form-control" required />
                                           @error('subdomain')
                                           <span class="text-danger">{{ $message }}</span>
                                           @enderror
