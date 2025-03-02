@@ -151,15 +151,18 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
-                $db_import = Http::withHeaders([
-                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
-                    'database' => $dbName,
-                    'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
-                ]);
-                if ($db_import->failed()) {
-                    dd($db_import->body()); // Show error response
-                }
+                $sqlFile = "/home/$cpanelUser/lms.alldigi.biz/lms.sql";
+                $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
+                exec($importCommand, $output, $returnVar);
+                // $db_import = Http::withHeaders([
+                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                // ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
+                //     'database' => $dbName,
+                //     'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
+                // ]);
+                // if ($db_import->failed()) {
+                //     dd($db_import->body()); // Show error response
+                // }
                 // // **4. Update .env file for the new project**
                 // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
                 $envPath = "{$path}/.env";
@@ -170,6 +173,9 @@ class CustomerController extends Controller
                     $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
                     File::put($envPath, $envContent);
                 }
+
+                //  ** 5. Composer update
+                exec("cd $path && composer update", $output, $returnVar);
             }
             DB::commit();
         } catch (Exception $e) {
