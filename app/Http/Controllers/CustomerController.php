@@ -151,20 +151,13 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
-                $sqlFile = "/home/$cpanelUser/lms.alldigi.biz/lms.sql";
-                $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
-                exec($importCommand, $output, $returnVar);
-                // $db_import = Http::withHeaders([
-                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                // ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
-                //     'database' => $dbName,
-                //     'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
-                // ]);
-                // if ($db_import->failed()) {
-                //     dd($db_import->body()); // Show error response
-                // }
+                //Database Import
+
+                // $sqlFile = "/home/$cpanelUser/lms.alldigi.biz/lms.sql";
+                // $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
+                // exec($importCommand, $output, $returnVar);
+                
                 // // **4. Update .env file for the new project**
-                // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
                 $envPath = "{$path}/.env";
                 if (File::exists($envPath)) {
                     $envContent = File::get($envPath);
@@ -236,27 +229,6 @@ class CustomerController extends Controller
 
     //Helping function
 
-    // Create a new domain via cPanel API
-    private function createDomain($cpanelUser, $cpanelToken, $subdomain, $domain, $path)
-    {
-        // API URL to create a subdomain
-        $apiUrl = "https://{$domain}:2083/execute/DomainInfo/add_domain?domain={$subdomain}&dir={$path}";
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $apiUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        $data = json_decode($response, true);
-        if ($data['status'] === 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     // Copy and extract project files
     private function copyProjectFiles($sourcePath, $destinationPath)
     {
@@ -270,46 +242,5 @@ class CustomerController extends Controller
         exec("unzip {$destinationPath}/project.zip -d {$destinationPath}");
         exec("mv {$destinationPath}/project/* {$destinationPath}/");
         exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
-    }
-
-    // Create a database, user, and grant privileges
-    private function createDatabase($cpanelUser, $cpanelToken, $dbName, $dbUser, $dbPass)
-    {
-        // Create database
-        $dbQuery = "https://alldigi.biz:2083/execute/Mysql/add_database?name={$dbName}";
-        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $dbQuery);
-
-        // Create database user
-        $userQuery = "https://alldigi.biz:2083/execute/Mysql/add_user?name={$dbUser}&password={$dbPass}";
-        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $userQuery);
-
-        // Grant privileges
-        $grantQuery = "https://alldigi.biz:2083/execute/Mysql/set_privileges_on_database?user={$dbUser}&database={$dbName}&privileges=ALL%20PRIVILEGES";
-        $this->executeCpanelRequest($cpanelUser, $cpanelToken, $grantQuery);
-    }
-
-    // Execute cPanel API requests
-    private function executeCpanelRequest($cpanelUser, $cpanelToken, $query)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $query);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: cpanel {$cpanelUser}:{$cpanelToken}"]);
-        $response = curl_exec($ch);
-        curl_close($ch);
-        return json_decode($response, true)['status'] ?? false;
-    }
-
-    // Update .env file with new database credentials
-    private function updateEnvFile($path, $dbName, $dbUser, $dbPass)
-    {
-        $envPath = "{$path}/.env";
-        if (File::exists($envPath)) {
-            $envContent = File::get($envPath);
-            $envContent = preg_replace("/DB_DATABASE=.*/", "DB_DATABASE={$dbName}", $envContent);
-            $envContent = preg_replace("/DB_USERNAME=.*/", "DB_USERNAME={$dbUser}", $envContent);
-            $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
-            File::put($envPath, $envContent);
-        }
     }
 }
