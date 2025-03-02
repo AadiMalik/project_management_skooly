@@ -157,7 +157,7 @@ class CustomerController extends Controller
                 // $sqlFile = "/home/$cpanelUser/lms.alldigi.biz/lms.sql";
                 // $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
                 // exec($importCommand, $output, $returnVar);
-                
+
                 // // **4. Update .env file for the new project**
                 $envPath = "{$path}/.env";
                 if (File::exists($envPath)) {
@@ -169,7 +169,10 @@ class CustomerController extends Controller
                 }
 
                 //  ** 5. Composer update
-                exec("cd $path && composer update", $output, $returnVar);
+                $projectPath = "/home/alldxyrq/".$subdomain;
+                $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
+
+                exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
             }
             DB::commit();
         } catch (Exception $e) {
