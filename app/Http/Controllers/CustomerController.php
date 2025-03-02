@@ -94,6 +94,7 @@ class CustomerController extends Controller
                 ];
                 $plan = Plan::find($request->plan_id);
                 $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['register_date'] = Carbon::now()->format('Y-m-d');
                 $obj['expiry_date'] = $expiry_date;
                 $customer = Customer::create($obj);
 
