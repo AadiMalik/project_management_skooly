@@ -112,7 +112,7 @@
                                                       <td>{{$item->name??''}}</td>
                                                       <td>{{$item->email??''}}</td>
                                                       <td>{{$item->phone_no??''}}</td>
-                                                      <td><a href="{{$item->subdomain??''}}.alldigi.biz" target="_blank">{{$item->subdomain??''}}</a></td>
+                                                      <td><a href="https://{{$item->subdomain??''}}.alldigi.biz" target="_blank">{{$item->subdomain??''}}</a></td>
                                                       <td>alldxyrq_{{$item->subdomain??''}}</td>
                                                       <td>alldxyrq_lms</td>
                                                       <td>alldxyrq_lms</td>
