@@ -94,6 +94,9 @@
                                                       <th scope="col">Email</th>
                                                       <th scope="col">Phone No</th>
                                                       <th scope="col">Domain</th>
+                                                      <th scope="col">Database</th>
+                                                      <th scope="col">Database User</th>
+                                                      <th scope="col">Database Pass</th>
                                                       <th scope="col">Plan</th>
                                                       <th scope="col">Register Date</th>
                                                       <th scope="col">Expiry Date</th>
@@ -109,7 +112,10 @@
                                                       <td>{{$item->name??''}}</td>
                                                       <td>{{$item->email??''}}</td>
                                                       <td>{{$item->phone_no??''}}</td>
-                                                      <td>{{$item->subdomain??''}}</td>
+                                                      <td><a href="{{$item->subdomain??''}}.alldigi.biz" target="_blank">{{$item->subdomain??''}}</a></td>
+                                                      <td>alldxyrq_{{$item->subdomain??''}}</td>
+                                                      <td>alldxyrq_lms</td>
+                                                      <td>alldxyrq_lms</td>
                                                       <td>{{$item->plan->name??''}}</td>
                                                       <td>{{$item->register_date??''}}</td>
                                                       <td>{{$item->expiry_date??''}}</td>

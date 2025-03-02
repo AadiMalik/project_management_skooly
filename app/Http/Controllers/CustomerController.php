@@ -121,7 +121,7 @@ class CustomerController extends Controller
 
                 // **2. Copy and Extract Project Files**
                 $path = "/home/{$cpanelUser}/{$subdomain}";
-                $sourcePath = "/home/{$cpanelUser}/test.alldigi.biz";
+                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
                 $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
@@ -151,17 +151,25 @@ class CustomerController extends Controller
                     dd($db_attach->body()); // Show error response
                 }
 
-                // $db_import = Http::withHeaders([
-                //     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-                // ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
-                //     'database' => $dbName,
-                //     'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
-                // ]);
-                // if ($db_import->failed()) {
-                //     dd($db_import->body()); // Show error response
-                // }
+                $db_import = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/import_database", [
+                    'database' => $dbName,
+                    'file' => '/home/' . $cpanelUser . '/lms.alldigi.biz/lms.sql', // Path to uploaded SQL file
+                ]);
+                if ($db_import->failed()) {
+                    dd($db_import->body()); // Show error response
+                }
                 // // **4. Update .env file for the new project**
-                $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
+                // $this->updateEnvFile($newSubdomainPath, $dbName, $dbUser, $dbPass);
+                $envPath = "{$path}/.env";
+                if (File::exists($envPath)) {
+                    $envContent = File::get($envPath);
+                    $envContent = preg_replace("/DB_DATABASE=.*/", "DB_DATABASE={$dbName}", $envContent);
+                    $envContent = preg_replace("/DB_USERNAME=.*/", "DB_USERNAME={$dbUser}", $envContent);
+                    $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
+                    File::put($envPath, $envContent);
+                }
             }
             DB::commit();
         } catch (Exception $e) {
@@ -246,16 +254,16 @@ class CustomerController extends Controller
     // Copy and extract project files
     private function copyProjectFiles($sourcePath, $destinationPath)
     {
-        // $sourcePath = "/home/cpaneluser/source_directory";  // Source directory
-        // $destinationPath = "/home/cpaneluser/destination_directory"; // Destination directory
-
-        // Ensure destination directory exists
         if (!File::exists($destinationPath)) {
             File::makeDirectory($destinationPath, 0777, true, true);
+            File::cleanDirectory($destinationPath);
         }
+        File::cleanDirectory($destinationPath);
 
-        // Copy all files and subdirectories recursively
-        exec("cp -r {$sourcePath}/* {$destinationPath}/");
+        exec("cp -r {$sourcePath}/* {$destinationPath}");
+        exec("unzip {$destinationPath}/project.zip -d {$destinationPath}");
+        exec("mv {$destinationPath}/project/* {$destinationPath}/");
+        exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
     }
 
     // Create a database, user, and grant privileges
