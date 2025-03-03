@@ -103,7 +103,6 @@ class CustomerController extends Controller
                 $cpanelHost = "alldigi.biz"; // Your main domain
                 $cpanelUser = "alldxyrq";
                 $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
-                $newSubdomainPath = "/home/{$cpanelUser}/{$subdomain}/public";
 
                 // **1. Create the Subdomain using cPanel API**
                 $response = Http::withHeaders([
@@ -168,12 +167,8 @@ class CustomerController extends Controller
                     File::put($envPath, $envContent);
                 }
 
-                //  ** 5. Composer update
-                $projectPath = "/home/alldxyrq/".$subdomain;
-                $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
 
-                exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
-
+                // insert Admin
                 DB::table('users')->insert([
                     'role' => 'admin',
                     'email' => 'admin@admin.com',
@@ -186,6 +181,14 @@ class CustomerController extends Controller
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                //  ** 5. Composer update
+                $projectPath = "/home/alldxyrq/".$subdomain;
+                $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
+
+                exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
+
+                
             }
             DB::commit();
         } catch (Exception $e) {
