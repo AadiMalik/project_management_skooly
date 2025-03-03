@@ -169,35 +169,6 @@ class CustomerController extends Controller
                 }
 
 
-                // insert Admin
-
-                User::create([
-                    'id' => 1,
-                    'role' => 'admin',
-                    'email' => 'admin@admin.com',
-                    'status' => 1,
-                    'name' => 'Admin',
-                    'phone' => '+923000000000',
-                    'website' => null,
-                    'skills' => '[]',
-                    'facebook' => null,
-                    'twitter' => null,
-                    'linkedin' => null,
-                    'address' => 'Lahore',
-                    'about' => null,
-                    'biography' => null,
-                    'educations' => null,
-                    'photo' => null,
-                    'email_verified_at' => Carbon::now(),
-                    'password' => bcrypt('12345678'),
-                    'remember_token' => null,
-                    'paymentkeys' => null,
-                    'video_url' => null,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => null,
-                ]);
-
-
                 //  ** 5. Composer update
                 $projectPath = "/home/alldxyrq/" . $subdomain;
                 $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
