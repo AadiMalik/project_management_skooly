@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Plan;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -60,8 +61,8 @@ class CustomerController extends Controller
             ],
             'plan_id'          => 'required'
         ]);
-        try {
-            DB::beginTransaction();
+        // try {
+        //     DB::beginTransaction();
             if ($request->id != '' && $request->id != null) {
                 $obj = [
                     "name" => $request->name ?? '',
@@ -169,32 +170,45 @@ class CustomerController extends Controller
 
 
                 // insert Admin
-                DB::table('users')->insert([
+
+                User::create([
+                    'id' => 1,
                     'role' => 'admin',
                     'email' => 'admin@admin.com',
                     'status' => 1,
                     'name' => 'Admin',
                     'phone' => '+923000000000',
-                    'address' => '',
-                    'email_verified_at' => now(),
+                    'website' => null,
+                    'skills' => '[]',
+                    'facebook' => null,
+                    'twitter' => null,
+                    'linkedin' => null,
+                    'address' => 'Lahore',
+                    'about' => null,
+                    'biography' => null,
+                    'educations' => null,
+                    'photo' => null,
+                    'email_verified_at' => Carbon::now(),
                     'password' => bcrypt('12345678'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'remember_token' => null,
+                    'paymentkeys' => null,
+                    'video_url' => null,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => null,
                 ]);
 
+
                 //  ** 5. Composer update
-                $projectPath = "/home/alldxyrq/".$subdomain;
+                $projectPath = "/home/alldxyrq/" . $subdomain;
                 $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
 
                 exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
-
-                
             }
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollback();
-            return redirect()->back()->with('error', $e);
-        }
+        //     DB::commit();
+        // } catch (Exception $e) {
+        //     DB::rollback();
+        //     return redirect()->back()->with('error', $e);
+        // }
         return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}');
 
         // return redirect()->back()->with('error', 'Something went wrong!');
