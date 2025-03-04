@@ -154,7 +154,7 @@ class CustomerController extends Controller
 
                 //Database Import
 
-                $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/assets/sql.sql";
+                $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/assets/lms.sql";
                 $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
                 exec($importCommand, $output, $returnVar);
 
