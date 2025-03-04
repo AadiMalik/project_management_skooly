@@ -39,6 +39,7 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
+        ini_set('max_execution_time', 300);
         $request->validate([
             'name'             => 'required',
             'email'            => [
@@ -61,8 +62,8 @@ class CustomerController extends Controller
             ],
             'plan_id'          => 'required'
         ]);
-        // try {
-        //     DB::beginTransaction();
+        try {
+            DB::beginTransaction();
         if ($request->id != '' && $request->id != null) {
             $obj = [
                 "name" => $request->name ?? '',
@@ -175,11 +176,11 @@ class CustomerController extends Controller
 
             exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
         }
-        //     DB::commit();
-        // } catch (Exception $e) {
-        //     DB::rollback();
-        //     return redirect()->back()->with('error', $e);
-        // }
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+            return redirect()->back()->with('error', $e->getMessage());
+        }
         return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}');
 
         // return redirect()->back()->with('error', 'Something went wrong!');
