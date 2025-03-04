@@ -250,6 +250,5 @@ class CustomerController extends Controller
         exec("find {$destinationPath} -type d -exec chmod 775 {} \;");
         exec("find {$destinationPath} -type f -exec chmod 644 {} \;");
         exec("chmod 644 {$destinationPath}/.env");
-        exec("php artisan optimize:clear");
     }
 }
