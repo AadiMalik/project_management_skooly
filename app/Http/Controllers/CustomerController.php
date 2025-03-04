@@ -248,7 +248,5 @@ class CustomerController extends Controller
         exec("mv {$destinationPath}/project/{.,}* {$destinationPath}/");
         exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
         exec("find {$destinationPath} -type d -exec chmod 775 {} \;");
-        exec("find {$destinationPath} -type f -exec chmod 644 {} \;");
-        exec("chmod 644 {$destinationPath}/.env");
     }
 }
