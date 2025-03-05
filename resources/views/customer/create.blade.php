@@ -4,26 +4,6 @@
       .hidden {
             display: none;
       }
-
-      .loading-spinner {
-            width: 30px;
-            height: 30px;
-            border: 4px solid #ccc;
-            border-top-color: #007bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-      }
-
-      @keyframes spin {
-            0% {
-                  transform: rotate(0deg);
-            }
-
-            100% {
-                  transform: rotate(360deg);
-            }
-      }
 </style>
 @endsection
 @section('content')
@@ -40,7 +20,7 @@
             toastr.error("{{ session('error') }}");
       </script>
       @endif
-      <form action="{{url('customer/store')}}" method="POST" enctype="multipart/form-data">
+      <form action="{{url('customer/store')}}" id="customerAdd" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="card">
                   <div class="card-header bg-transparent">
@@ -105,9 +85,10 @@
                   <div class="card-footer">
                         <div class="col-md-12">
                               <button class="btn btn-primary" id="submit" accesskey="s">{{ isset($customer)?'Update':'Save' }}</button>
-                              <span id="loading" class="hidden">
-                                    <div class="loading-spinner"></div> Processing...
-                              </span>
+                              <button class="btn btn-primary" type="button" id="loading" disabled>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    Processing...
+                              </button>
                         </div>
                   </div>
             </div>
@@ -118,6 +99,8 @@
 @endsection
 @section('js')
 <script>
+      $('#loading').hide();
+
       function isNumberKey(evt) {
             var charCode = evt.which ? evt.which : evt.keyCode;
             if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57))
@@ -125,7 +108,7 @@
 
             return true;
       }
-      document.getElementById('submit').addEventListener('submit', function(event) {
+      document.getElementById('customerAdd').addEventListener('submit', function(event) {
             $('#submit').hide();
             $('#loading').show(); // Show Loading
       });
