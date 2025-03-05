@@ -30,9 +30,9 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
-      @if(session('errors'))
+      @if($errors->any())
       <script>
-            toastr.error("{{ session('errors') }}");
+            toastr.error("{{ $errors->all() }}");
       </script>
       @endif
       @if(session('error'))
@@ -131,7 +131,7 @@
       });
 
       // If validation errors exist, show Save button again after reload
-      @if($errors - > any())
+      @if($errors->any())
       $('#submit').hide();
       $('#loading').hide();
       @endif
