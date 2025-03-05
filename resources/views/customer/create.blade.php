@@ -1,12 +1,29 @@
 @extends('layouts.admin')
-
+@section('css')
+<style>
+        .hidden { display: none; }
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 4px solid #ccc;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+@endsection
 @section('content')
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
-      @if(session('error'))
+      @if(session('errors'))
       <script>
-            toastr.error("{{ session('error') }}");
+            toastr.error("{{ session('errors') }}");
       </script>
       @endif
       <form action="{{url('customer/store')}}" method="POST" enctype="multipart/form-data">
@@ -74,6 +91,9 @@
                   <div class="card-footer">
                         <div class="col-md-12">
                               <button class="btn btn-primary" id="submit" accesskey="s">{{ isset($customer)?'Update':'Save' }}</button>
+                              <span id="loading" class="hidden">
+                                    <div class="loading-spinner"></div> Processing...
+                              </span>
                         </div>
                   </div>
             </div>
@@ -91,5 +111,15 @@
 
             return true;
       }
+      document.getElementById('myForm').addEventListener('submit', function(event) {
+            document.getElementById('saveButton').classList.add('hidden'); // Hide Save button
+            document.getElementById('loading').classList.remove('hidden'); // Show Loading
+      });
+
+      // If validation errors exist, show Save button again after reload
+      @if($errors->any())
+      document.getElementById('saveButton').classList.remove('hidden'); // Show Save button
+      document.getElementById('loading').classList.add('hidden'); // Hide Loading
+      @endif
 </script>
 @endsection
