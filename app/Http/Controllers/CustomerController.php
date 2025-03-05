@@ -64,118 +64,118 @@ class CustomerController extends Controller
         ]);
         try {
             DB::beginTransaction();
-        if ($request->id != '' && $request->id != null) {
-            $obj = [
-                "name" => $request->name ?? '',
-                "email" => $request->email ?? '',
-                "phone_no" => $request->phone_no ?? '',
-                "subdomain" => $request->subdomain ?? '',
-                "plan_id" => $request->plan_id ?? null,
-                "updatedby_id" => Auth::user()->id,
-            ];
-            $plan = Plan::find($request->plan_id);
-            $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-            $obj['expiry_date'] = $expiry_date;
-            // Find the record first
-            $customer = Customer::find($request->id);
+            if ($request->id != '' && $request->id != null) {
+                $obj = [
+                    "name" => $request->name ?? '',
+                    "email" => $request->email ?? '',
+                    "phone_no" => $request->phone_no ?? '',
+                    "subdomain" => $request->subdomain ?? '',
+                    "plan_id" => $request->plan_id ?? null,
+                    "updatedby_id" => Auth::user()->id,
+                ];
+                $plan = Plan::find($request->plan_id);
+                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['expiry_date'] = $expiry_date;
+                // Find the record first
+                $customer = Customer::find($request->id);
 
-            if ($customer) {
-                $customer->update($obj);
-                return redirect('customer')->with('success', 'customer updated successfully!');
+                if ($customer) {
+                    $customer->update($obj);
+                    return redirect('customer')->with('success', 'customer updated successfully!');
+                }
+
+                return redirect()->back()->with('error', 'Something went wrong!');
+            } else {
+                $obj = [
+                    "name" => $request->name ?? '',
+                    "email" => $request->email ?? '',
+                    "phone_no" => $request->phone_no ?? '',
+                    "subdomain" => $request->subdomain ?? '',
+                    "plan_id" => $request->plan_id ?? null,
+                    "createdby_id" => Auth::user()->id,
+                ];
+                $plan = Plan::find($request->plan_id);
+                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $obj['register_date'] = Carbon::now()->format('Y-m-d');
+                $obj['expiry_date'] = $expiry_date;
+                $customer = Customer::create($obj);
+
+                //Sub Domain
+                $subdomain = $request->subdomain . '.alldigi.biz';
+                $cpanelHost = "alldigi.biz"; // Your main domain
+                $cpanelUser = "alldxyrq";
+                $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
+
+                // **1. Create the Subdomain using cPanel API**
+                $response = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
+                    'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
+                    'rootdomain' => 'alldigi.biz', // Your main domain
+                    'dir' => '/home/alldxyrq/' . $subdomain . '/public', // Document root
+                ]);
+
+                if ($response->failed()) {
+                    dd($response->body()); // Show error response
+                }
+
+                // dd($response->body());
+
+                // **2. Copy and Extract Project Files**
+                $path = "/home/{$cpanelUser}/{$subdomain}";
+                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                $this->copyProjectFiles($sourcePath, $path);
+
+                // // **3. Create Database and User**
+                $dbName = "alldxyrq_" . $request->subdomain;
+                $dbUser = "alldxyrq_lms";
+                $dbPass = "alldxyrq_lms";
+
+                $db_create = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/create_database", [
+                    'name' => $dbName, // Database name (must include cPanel user prefix)
+                ]);
+
+                if ($db_create->failed()) {
+                    dd($db_create->body()); // Show error response
+                }
+
+                $db_attach = Http::withHeaders([
+                    'Authorization' => "cpanel $cpanelUser:$cpanelToken"
+                ])->get("https://$cpanelHost:2083/execute/Mysql/set_privileges_on_database", [
+                    'user' => $dbUser, // Database user
+                    'database' => $dbName, // Database name
+                    'privileges' => 'ALL PRIVILEGES', // Full access
+                ]);
+
+                if ($db_attach->failed()) {
+                    dd($db_attach->body()); // Show error response
+                }
+
+                //Database Import
+
+                $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/assets/lms.sql";
+                $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
+                exec($importCommand, $output, $returnVar);
+
+                // // **4. Update .env file for the new project**
+                $envPath = "{$path}/.env";
+                if (File::exists($envPath)) {
+                    $envContent = File::get($envPath);
+                    $envContent = preg_replace("/DB_DATABASE=.*/", "DB_DATABASE={$dbName}", $envContent);
+                    $envContent = preg_replace("/DB_USERNAME=.*/", "DB_USERNAME={$dbUser}", $envContent);
+                    $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
+                    File::put($envPath, $envContent);
+                }
+
+
+                //  ** 5. Composer update
+                $projectPath = "/home/alldxyrq/" . $subdomain;
+                $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
+
+                exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
             }
-
-            return redirect()->back()->with('error', 'Something went wrong!');
-        } else {
-            $obj = [
-                "name" => $request->name ?? '',
-                "email" => $request->email ?? '',
-                "phone_no" => $request->phone_no ?? '',
-                "subdomain" => $request->subdomain ?? '',
-                "plan_id" => $request->plan_id ?? null,
-                "createdby_id" => Auth::user()->id,
-            ];
-            $plan = Plan::find($request->plan_id);
-            $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
-            $obj['register_date'] = Carbon::now()->format('Y-m-d');
-            $obj['expiry_date'] = $expiry_date;
-            $customer = Customer::create($obj);
-
-            //Sub Domain
-            $subdomain = $request->subdomain . '.alldigi.biz';
-            $cpanelHost = "alldigi.biz"; // Your main domain
-            $cpanelUser = "alldxyrq";
-            $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
-
-            // **1. Create the Subdomain using cPanel API**
-            $response = Http::withHeaders([
-                'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-            ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
-                'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
-                'rootdomain' => 'alldigi.biz', // Your main domain
-                'dir' => '/home/alldxyrq/' . $subdomain . '/public', // Document root
-            ]);
-
-            if ($response->failed()) {
-                dd($response->body()); // Show error response
-            }
-
-            // dd($response->body());
-
-            // **2. Copy and Extract Project Files**
-            $path = "/home/{$cpanelUser}/{$subdomain}";
-            $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
-            $this->copyProjectFiles($sourcePath, $path);
-
-            // // **3. Create Database and User**
-            $dbName = "alldxyrq_" . $request->subdomain;
-            $dbUser = "alldxyrq_lms";
-            $dbPass = "alldxyrq_lms";
-
-            $db_create = Http::withHeaders([
-                'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-            ])->get("https://$cpanelHost:2083/execute/Mysql/create_database", [
-                'name' => $dbName, // Database name (must include cPanel user prefix)
-            ]);
-
-            if ($db_create->failed()) {
-                dd($db_create->body()); // Show error response
-            }
-
-            $db_attach = Http::withHeaders([
-                'Authorization' => "cpanel $cpanelUser:$cpanelToken"
-            ])->get("https://$cpanelHost:2083/execute/Mysql/set_privileges_on_database", [
-                'user' => $dbUser, // Database user
-                'database' => $dbName, // Database name
-                'privileges' => 'ALL PRIVILEGES', // Full access
-            ]);
-
-            if ($db_attach->failed()) {
-                dd($db_attach->body()); // Show error response
-            }
-
-            //Database Import
-
-            $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/assets/lms.sql";
-            $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
-            exec($importCommand, $output, $returnVar);
-
-            // // **4. Update .env file for the new project**
-            $envPath = "{$path}/.env";
-            if (File::exists($envPath)) {
-                $envContent = File::get($envPath);
-                $envContent = preg_replace("/DB_DATABASE=.*/", "DB_DATABASE={$dbName}", $envContent);
-                $envContent = preg_replace("/DB_USERNAME=.*/", "DB_USERNAME={$dbUser}", $envContent);
-                $envContent = preg_replace("/DB_PASSWORD=.*/", "DB_PASSWORD={$dbPass}", $envContent);
-                File::put($envPath, $envContent);
-            }
-
-
-            //  ** 5. Composer update
-            $projectPath = "/home/alldxyrq/" . $subdomain;
-            $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
-
-            exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
-        }
             DB::commit();
         } catch (Exception $e) {
             DB::rollback();
@@ -244,10 +244,21 @@ class CustomerController extends Controller
         }
         File::cleanDirectory($destinationPath);
 
-        exec("cp -r {$sourcePath}/{.,}* {$destinationPath}");
+        // Copy all files, including hidden ones
+        exec("cp -r {$sourcePath}/* {$sourcePath}/.* {$destinationPath}/ 2>/dev/null");
+
+        // Unzip project.zip
         exec("unzip {$destinationPath}/project.zip -d {$destinationPath}");
-        exec("mv {$destinationPath}/project/{.,}* {$destinationPath}/");
+
+        // Move extracted project files
+        exec("mv {$destinationPath}/project/* {$destinationPath}/");
+        exec("mv {$destinationPath}/project/.* {$destinationPath}/ 2>/dev/null");
+
+        // Clean up extracted folder and zip file
         exec("rm -rf {$destinationPath}/project {$destinationPath}/project.zip");
-        exec("find {$destinationPath} -type d -exec chmod 775 {} \;");
+
+        // Set proper permissions
+        exec("find {$destinationPath} -type d -exec chmod 775 {} +");
+        exec("find {$destinationPath} -type f -exec chmod 664 {} +");
     }
 }
