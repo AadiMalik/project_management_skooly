@@ -1,8 +1,11 @@
 @extends('layouts.admin')
 @section('css')
 <style>
-        .hidden { display: none; }
-        .loading-spinner {
+      .hidden {
+            display: none;
+      }
+
+      .loading-spinner {
             width: 30px;
             height: 30px;
             border: 4px solid #ccc;
@@ -10,12 +13,18 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: inline-block;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+      }
+
+      @keyframes spin {
+            0% {
+                  transform: rotate(0deg);
+            }
+
+            100% {
+                  transform: rotate(360deg);
+            }
+      }
+</style>
 @endsection
 @section('content')
 <!-- Begin Page Content -->
@@ -24,6 +33,11 @@
       @if(session('errors'))
       <script>
             toastr.error("{{ session('errors') }}");
+      </script>
+      @endif
+      @if(session('error'))
+      <script>
+            toastr.error("{{ session('error') }}");
       </script>
       @endif
       <form action="{{url('customer/store')}}" method="POST" enctype="multipart/form-data">
@@ -111,15 +125,15 @@
 
             return true;
       }
-      document.getElementById('myForm').addEventListener('submit', function(event) {
-            document.getElementById('saveButton').classList.add('hidden'); // Hide Save button
-            document.getElementById('loading').classList.remove('hidden'); // Show Loading
+      document.getElementById('submit').addEventListener('submit', function(event) {
+            $('#submit').hide();
+            $('#loading').show(); // Show Loading
       });
 
       // If validation errors exist, show Save button again after reload
-      @if($errors->any())
-      document.getElementById('saveButton').classList.remove('hidden'); // Show Save button
-      document.getElementById('loading').classList.add('hidden'); // Hide Loading
+      @if($errors - > any())
+      $('#submit').hide();
+      $('#loading').hide();
       @endif
 </script>
 @endsection
