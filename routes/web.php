@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PlanController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +13,12 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+// Plan
+Route::group(['prefix' => 'users'], function () {
+    Route::get('change-password', [UserController::class, 'changePassword']);
+    Route::post('update-password', [UserController::class, 'updatePassword']);
+});
 
 // Plan
 Route::group(['prefix' => 'plan'], function () {
