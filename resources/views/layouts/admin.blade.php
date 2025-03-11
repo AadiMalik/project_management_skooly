@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>LMS</title>
+    <title>All Digi</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{asset('assets/vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
@@ -34,10 +34,8 @@
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{url('home')}}">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">LMS <sup>2</sup></div>
+            <img src="{{asset('assets/img/logo.png')}}" style="width:200px;" alt="">
+                <!-- <div class="sidebar-brand-text mx-3">LMS <sup>2</sup></div> -->
             </a>
 
             <!-- Divider -->
