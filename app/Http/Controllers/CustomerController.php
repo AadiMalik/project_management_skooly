@@ -101,18 +101,18 @@ class CustomerController extends Controller
                 $customer = Customer::create($obj);
 
                 //Sub Domain
-                $subdomain = $request->subdomain . '.alldigi.biz';
-                $cpanelHost = "alldigi.biz"; // Your main domain
-                $cpanelUser = "alldxyrq";
-                $cpanelToken = "B4O4FFOH5WM94YJAYNI7WN8YANPL9GXZ";
+                $subdomain = $request->subdomain . '.myskooly.com';
+                $cpanelHost = "brightcareservices.org"; // Your main domain
+                $cpanelUser = "brighfrw";
+                $cpanelToken = "QYJJMQG5XK5BXW812KHD4S6HJGAWYMT3";
 
                 // **1. Create the Subdomain using cPanel API**
                 $response = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
                 ])->get("https://$cpanelHost:2083/execute/SubDomain/addsubdomain", [
                     'domain' => $subdomain, // Only the subdomain part (e.g., "blog")
-                    'rootdomain' => 'alldigi.biz', // Your main domain
-                    'dir' => '/home/alldxyrq/' . $subdomain . '/public', // Document root
+                    'rootdomain' => 'myskooly.com', // Your main domain
+                    'dir' => '/home/brighfrw/' . $subdomain . '/public', // Document root
                 ]);
 
                 if ($response->failed()) {
@@ -123,13 +123,13 @@ class CustomerController extends Controller
 
                 // **2. Copy and Extract Project Files**
                 $path = "/home/{$cpanelUser}/{$subdomain}";
-                $sourcePath = "/home/{$cpanelUser}/lms.alldigi.biz";
+                $sourcePath = "/home/{$cpanelUser}/myskooly.com";
                 $this->copyProjectFiles($sourcePath, $path);
 
                 // // **3. Create Database and User**
-                $dbName = "alldxyrq_" . $request->subdomain;
-                $dbUser = "alldxyrq_lms";
-                $dbPass = "alldxyrq_lms";
+                $dbName = "brighfrw_" . $request->subdomain;
+                $dbUser = "brighfrw_lms";
+                $dbPass = "brighfrw_lms";
 
                 $db_create = Http::withHeaders([
                     'Authorization' => "cpanel $cpanelUser:$cpanelToken"
@@ -155,7 +155,7 @@ class CustomerController extends Controller
 
                 //Database Import
 
-                $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/assets/lms.sql";
+                $sqlFile = "/home/{$cpanelUser}/{$subdomain}/public/db/lms.sql";
                 $importCommand = "mysql -u$dbUser -p'$dbPass' $dbName < $sqlFile";
                 exec($importCommand, $output, $returnVar);
 
