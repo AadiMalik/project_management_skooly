@@ -171,10 +171,10 @@ class CustomerController extends Controller
 
 
                 //  ** 5. Composer update
-                $projectPath = "/home/alldxyrq/" . $subdomain;
-                $composerPath = "/home/alldxyrq/composer.phar"; // Update with your actual composer path
+                $projectPath = "/home/brighfrw/" . $subdomain;
+                $composerPath = "/home/brighfrw/composer.phar"; // Update with your actual composer path
 
-                exec("export HOME=/home/alldxyrq && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
+                exec("export HOME=/home/brighfrw && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
             }
             DB::commit();
         } catch (Exception $e) {
