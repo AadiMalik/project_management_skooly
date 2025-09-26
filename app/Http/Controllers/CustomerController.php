@@ -61,8 +61,8 @@ class CustomerController extends Controller
             ],
             'plan_id'          => 'required'
         ]);
-        try {
-            DB::beginTransaction();
+        // try {
+        //     DB::beginTransaction();
             if ($request->id != '' && $request->id != null) {
                 $obj = [
                     "name" => $request->name ?? '',
@@ -101,7 +101,7 @@ class CustomerController extends Controller
 
                 //Sub Domain
                 $subdomain = $request->subdomain . '.myskooly.com';
-                $cpanelHost = "brightcareservices.org"; // Your main domain
+                $cpanelHost = "127.0.0.1"; // Your main domain
                 $cpanelUser = "brighfrw";
                 $cpanelToken = "QYJJMQG5XK5BXW812KHD4S6HJGAWYMT3";
 
@@ -175,11 +175,11 @@ class CustomerController extends Controller
 
                 exec("export HOME=/home/brighfrw && cd $projectPath && php $composerPath update 2>&1", $output, $returnVar);
             }
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollback();
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+        //     DB::commit();
+        // } catch (Exception $e) {
+        //     DB::rollback();
+        //     return redirect()->back()->with('error', $e->getMessage());
+        // }
         return redirect('customer')->with('success', 'Customer created successfully! URL:https://{$subdomain}');
 
         // return redirect()->back()->with('error', 'Something went wrong!');
