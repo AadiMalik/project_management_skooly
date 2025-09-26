@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Plan;
-use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -74,7 +73,7 @@ class CustomerController extends Controller
                     "updatedby_id" => Auth::user()->id,
                 ];
                 $plan = Plan::find($request->plan_id);
-                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $expiry_date = Carbon::now()->addDays((int)$plan->days)->format('Y-m-d');
                 $obj['expiry_date'] = $expiry_date;
                 // Find the record first
                 $customer = Customer::find($request->id);
@@ -95,7 +94,7 @@ class CustomerController extends Controller
                     "createdby_id" => Auth::user()->id,
                 ];
                 $plan = Plan::find($request->plan_id);
-                $expiry_date = Carbon::now()->addDays($plan->days)->format('Y-m-d');
+                $expiry_date = Carbon::now()->addDays((int)$plan->days)->format('Y-m-d');
                 $obj['register_date'] = Carbon::now()->format('Y-m-d');
                 $obj['expiry_date'] = $expiry_date;
                 $customer = Customer::create($obj);
